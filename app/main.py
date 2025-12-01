@@ -54,18 +54,24 @@ class LoginFrame(ttk.Frame):
 
         self.controller = controller
 
-        ttk.Label(self, text="Login", font=("Arial", 18)).pack(pady=15)
+        center = ttk.Frame(self)
+        center.pack(expand=True)   # expands and centers vertically AND horizontally
 
-        self.username_entry = ttk.Entry(self, width=30)
+        ttk.Label(center, text="Login", font=("Arial", 18)).pack(pady=15)
+
+        self.username_entry = ttk.Entry(center, width=30)
         self.username_entry.pack(pady=5)
         self.username_entry.insert(0, "Username")
 
-        self.password_entry = ttk.Entry(self, width=30, show="*")
+        self.password_entry = ttk.Entry(center, width=30)
         self.password_entry.pack(pady=5)
         self.password_entry.insert(0, "Password")
 
-        ttk.Button(self, text="Login", command=self.login).pack(pady=10)
-        ttk.Button(self, text="Create new account", command=lambda: controller.show_frame(RegisterFrame)).pack()
+        ttk.Button(center, text="Login", width=20, command=self.login).pack(pady=5)
+        ttk.Button(center, text="Create new account", width=20,
+           command=lambda: controller.show_frame(RegisterFrame)).pack(pady=5)
+
+
 
     def login(self):
         username = self.username_entry.get().strip()
@@ -89,20 +95,32 @@ class RegisterFrame(ttk.Frame):
 
         ttk.Label(self, text="Register", font=("Arial", 18)).pack(pady=15)
 
+        # Username entry
         self.username_entry = ttk.Entry(self, width=30)
         self.username_entry.pack(pady=5)
         self.username_entry.insert(0, "Choose Username")
 
-        self.password_entry = ttk.Entry(self, width=30, show="*")
+        # Password entry
+        self.password_entry = ttk.Entry(self, width=30)
         self.password_entry.pack(pady=5)
         self.password_entry.insert(0, "Choose Password")
 
+        # Confirm password entry
+        self.confirm_entry = ttk.Entry(self, width=30)
+        self.confirm_entry.pack(pady=5)
+        self.confirm_entry.insert(0, "Retype Password")
+
         ttk.Button(self, text="Register", command=self.register).pack(pady=10)
-        ttk.Button(self, text="Already have an account?", command=lambda: controller.show_frame(LoginFrame)).pack()
+        ttk.Button(self, text="Back to Login", command=lambda: controller.show_frame(LoginFrame)).pack()
 
     def register(self):
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
+        confirm = self.confirm_entry.get().strip()
+
+        if password != confirm:
+            messagebox.showerror("Error", "Passwords do not match!")
+            return
 
         success, msg = register_user(username, password)
 
@@ -112,51 +130,97 @@ class RegisterFrame(ttk.Frame):
         else:
             messagebox.showerror("Error", msg)
 
-
-# User Dashboard Frame
-
 class UserDashboardFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
 
-        ttk.Label(self, text="Your Notes", font=("Arial", 18)).pack(pady=10)
+        center = ttk.Frame(self)
+        center.pack(expand=True)
 
-        self.listbox = tk.Listbox(self, height=10, width=50)
+        ttk.Label(center, text="Your Notes", font=("Arial", 18)).pack(pady=10)
+
+        self.listbox = tk.Listbox(center, height=10, width=50)
         self.listbox.pack(pady=10)
 
-        btn_frame = ttk.Frame(self)
+        btn_frame = ttk.Frame(center)
         btn_frame.pack()
 
-        ttk.Button(btn_frame, text="Add Note", command=self.add_note).grid(row=0, column=0, padx=5)
-        ttk.Button(btn_frame, text="Edit Note", command=self.edit_note).grid(row=0, column=1, padx=5)
+        ttk.Button(btn_frame, text="Add Note", command=self.add_note_popup).grid(row=0, column=0, padx=5)
+        ttk.Button(btn_frame, text="Edit Note", command=self.edit_note_popup).grid(row=0, column=1, padx=5)
         ttk.Button(btn_frame, text="Delete Note", command=self.delete_note).grid(row=0, column=2, padx=5)
         ttk.Button(btn_frame, text="Logout", command=self.logout).grid(row=0, column=3, padx=5)
 
     def refresh(self):
         self.listbox.delete(0, tk.END)
         notes = get_user_notes(self.controller.active_user)
-        for n in notes:
-            self.listbox.insert(tk.END, n)
+        for note in notes:
+            self.listbox.insert(tk.END, note["title"])   
+            
+    def add_note_popup(self):
+        win = tk.Toplevel(self)
+        win.title("Add Note")
+        win.geometry("400x300")
 
-    def add_note(self):
-        new_note = simpledialog.askstring("New Note", "Enter your note:")
-        if new_note:
-            add_note(self.controller.active_user, new_note)
+        ttk.Label(win, text="Title").pack()
+        title_entry = ttk.Entry(win, width=40)
+        title_entry.pack(pady=5)
+
+        ttk.Label(win, text="Content").pack()
+        content_text = tk.Text(win, width=45, height=15)
+        content_text.pack()
+
+        def save_note():
+            title = title_entry.get().strip()
+            content = content_text.get("1.0", tk.END).strip()
+
+            if not title:
+                messagebox.showerror("Error", "Title cannot be empty.")
+                return
+
+            add_note(self.controller.active_user, title, content)
             self.refresh()
+            win.destroy()
 
-    def edit_note(self):
+        ttk.Button(win, text="Save", command=save_note).pack(pady=5)
+    
+    def edit_note_popup(self):
         sel = self.listbox.curselection()
         if not sel:
             messagebox.showerror("Error", "Select a note to edit.")
             return
 
-        old_text = self.listbox.get(sel[0])
+        index = sel[0]
+        notes = get_user_notes(self.controller.active_user)
+        note = notes[index]
 
-        new_text = simpledialog.askstring("Edit Note", "Update note:", initialvalue=old_text)
-        if new_text:
-            edit_note(self.controller.active_user, sel[0], new_text)
+        win = tk.Toplevel(self)
+        win.title("Edit Note")
+        win.geometry("400x300")
+
+        ttk.Label(win, text="Title").pack()
+        title_entry = ttk.Entry(win, width=40)
+        title_entry.insert(0, note["title"])
+        title_entry.pack(pady=5)
+
+        ttk.Label(win, text="Content").pack()
+        content_text = tk.Text(win, width=45, height=15)
+        content_text.insert("1.0", note["content"])
+        content_text.pack()
+
+        def save_edit():
+            new_title = title_entry.get().strip()
+            new_content = content_text.get("1.0", tk.END).strip()
+
+            if not new_title:
+                messagebox.showerror("Error", "Title cannot be empty.")
+                return
+
+            edit_note(self.controller.active_user, index, new_title, new_content)
             self.refresh()
+            win.destroy()
+
+        ttk.Button(win, text="Save Changes", command=save_edit).pack(pady=5)
 
     def delete_note(self):
         sel = self.listbox.curselection()
@@ -172,6 +236,7 @@ class UserDashboardFrame(ttk.Frame):
     def logout(self):
         self.controller.active_user = None
         self.controller.show_frame(LoginFrame)
+
 
 
 # Admin Dashboard Frame
