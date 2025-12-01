@@ -44,7 +44,7 @@ def register_user(username, password):
 # Login
 
 def login_user(username, password):
-    # Admin: compare plaintext (intentionally inconsistent)
+    # Admin: compare plaintext 
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
         return True, "admin"
 
