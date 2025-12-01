@@ -66,6 +66,8 @@ class LoginFrame(ttk.Frame):
         self.password_entry = ttk.Entry(center, width=30)
         self.password_entry.pack(pady=5)
         self.password_entry.insert(0, "Password")
+        self.password_entry.bind("<Return>", lambda event: self.login())
+
 
         ttk.Button(center, text="Login", width=20, command=self.login).pack(pady=5)
         ttk.Button(center, text="Create new account", width=20,
@@ -109,6 +111,8 @@ class RegisterFrame(ttk.Frame):
         self.confirm_entry = ttk.Entry(self, width=30)
         self.confirm_entry.pack(pady=5)
         self.confirm_entry.insert(0, "Retype Password")
+        self.confirm_entry.bind("<Return>", lambda event: self.register())
+
 
         ttk.Button(self, text="Register", command=self.register).pack(pady=10)
         ttk.Button(self, text="Back to Login", command=lambda: controller.show_frame(LoginFrame)).pack()
@@ -183,7 +187,13 @@ class UserDashboardFrame(ttk.Frame):
             self.refresh()
             win.destroy()
 
+        # Bind ENTER (Title)
+        title_entry.bind("<Return>", lambda event: save_note())
+        # Bind CTRL+ENTER (Content)
+        content_text.bind("<Control-Return>", lambda event: save_note())
+
         ttk.Button(win, text="Save", command=save_note).pack(pady=5)
+
     
     def edit_note_popup(self):
         sel = self.listbox.curselection()
@@ -197,7 +207,8 @@ class UserDashboardFrame(ttk.Frame):
 
         win = tk.Toplevel(self)
         win.title("Edit Note")
-        win.geometry("400x300")
+        win.geometry("500x400")
+        win.resizable(True, True)
 
         ttk.Label(win, text="Title").pack()
         title_entry = ttk.Entry(win, width=40)
@@ -221,7 +232,13 @@ class UserDashboardFrame(ttk.Frame):
             self.refresh()
             win.destroy()
 
-        ttk.Button(win, text="Save Changes", command=save_edit).pack(pady=5)
+            # Bind ENTER (Title)
+            title_entry.bind("<Return>", lambda event: save_edit())
+            # Bind CTRL+ENTER (Content)
+            content_text.bind("<Control-Return>", lambda event: save_edit())
+
+            ttk.Button(win, text="Save Changes", command=save_edit).pack(pady=5)
+
 
     def delete_note(self):
         sel = self.listbox.curselection()
