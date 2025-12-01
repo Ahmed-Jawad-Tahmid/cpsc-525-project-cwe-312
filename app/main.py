@@ -5,8 +5,40 @@ from auth_manager import login_user, register_user
 from note_manager import get_user_notes, add_note, edit_note, delete_note
 from admin_manager import view_all_users, reset_user_password
 
+class PlaceholderEntry(ttk.Entry):
+    def __init__(self, master=None, placeholder="Placeholder", color="gray", show=None, **kwargs):
+        self.placeholder = placeholder
+        self.placeholder_color = color
+        self.normal_color = kwargs.get("foreground", "black")
 
-# Main Application Window
+        self.real_show = show  
+
+        kwargs["show"] = None  
+
+        super().__init__(master, **kwargs)
+
+        self.bind("<FocusIn>", self._on_focus_in)
+        self.bind("<FocusOut>", self._on_focus_out)
+
+        self._show_placeholder()
+
+    def _show_placeholder(self):
+        self.insert(0, self.placeholder)
+        self["foreground"] = self.placeholder_color
+        self.config(show=None)
+
+    def _on_focus_in(self, event):
+        if self["foreground"] == self.placeholder_color:
+            self.delete(0, tk.END)
+            self["foreground"] = self.normal_color
+            # Restore password masking
+            if self.real_show is not None:
+                self.config(show=self.real_show)
+
+    def _on_focus_out(self, event):
+        if not self.get():
+            self._show_placeholder()
+
 
 class App(tk.Tk):
     def __init__(self):
@@ -45,35 +77,26 @@ class App(tk.Tk):
             self.frames[UserDashboardFrame].refresh()
             self.show_frame(UserDashboardFrame)
 
-
-# Login Frame
-
 class LoginFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-
         self.controller = controller
 
         center = ttk.Frame(self)
-        center.pack(expand=True)   # expands and centers vertically AND horizontally
+        center.pack(expand=True)
 
         ttk.Label(center, text="Login", font=("Arial", 18)).pack(pady=15)
 
-        self.username_entry = ttk.Entry(center, width=30)
+        self.username_entry = PlaceholderEntry(center, width=30, placeholder="Username")
         self.username_entry.pack(pady=5)
-        self.username_entry.insert(0, "Username")
 
-        self.password_entry = ttk.Entry(center, width=30)
+        self.password_entry = PlaceholderEntry(center, width=30, placeholder="Password", show="*")
         self.password_entry.pack(pady=5)
-        self.password_entry.insert(0, "Password")
         self.password_entry.bind("<Return>", lambda event: self.login())
-
 
         ttk.Button(center, text="Login", width=20, command=self.login).pack(pady=5)
         ttk.Button(center, text="Create new account", width=20,
-           command=lambda: controller.show_frame(RegisterFrame)).pack(pady=5)
-
-
+                   command=lambda: controller.show_frame(RegisterFrame)).pack(pady=5)
 
     def login(self):
         username = self.username_entry.get().strip()
@@ -86,36 +109,26 @@ class LoginFrame(ttk.Frame):
         else:
             messagebox.showerror("Error", "Invalid username or password.")
 
-
-# Register Frame
-
 class RegisterFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
-
         self.controller = controller
 
         ttk.Label(self, text="Register", font=("Arial", 18)).pack(pady=15)
 
-        # Username entry
-        self.username_entry = ttk.Entry(self, width=30)
+        self.username_entry = PlaceholderEntry(self, width=30, placeholder="Choose Username")
         self.username_entry.pack(pady=5)
-        self.username_entry.insert(0, "Choose Username")
 
-        # Password entry
-        self.password_entry = ttk.Entry(self, width=30)
+        self.password_entry = PlaceholderEntry(self, width=30, placeholder="Choose Password", show="*")
         self.password_entry.pack(pady=5)
-        self.password_entry.insert(0, "Choose Password")
 
-        # Confirm password entry
-        self.confirm_entry = ttk.Entry(self, width=30)
+        self.confirm_entry = PlaceholderEntry(self, width=30, placeholder="Retype Password", show="*")
         self.confirm_entry.pack(pady=5)
-        self.confirm_entry.insert(0, "Retype Password")
         self.confirm_entry.bind("<Return>", lambda event: self.register())
 
-
         ttk.Button(self, text="Register", command=self.register).pack(pady=10)
-        ttk.Button(self, text="Back to Login", command=lambda: controller.show_frame(LoginFrame)).pack()
+        ttk.Button(self, text="Back to Login",
+                   command=lambda: controller.show_frame(LoginFrame)).pack()
 
     def register(self):
         username = self.username_entry.get().strip()
@@ -159,8 +172,8 @@ class UserDashboardFrame(ttk.Frame):
         self.listbox.delete(0, tk.END)
         notes = get_user_notes(self.controller.active_user)
         for note in notes:
-            self.listbox.insert(tk.END, note["title"])   
-            
+            self.listbox.insert(tk.END, note["title"])
+
     def add_note_popup(self):
         win = tk.Toplevel(self)
         win.title("Add Note")
@@ -187,14 +200,11 @@ class UserDashboardFrame(ttk.Frame):
             self.refresh()
             win.destroy()
 
-        # Bind ENTER (Title)
         title_entry.bind("<Return>", lambda event: save_note())
-        # Bind CTRL+ENTER (Content)
         content_text.bind("<Control-Return>", lambda event: save_note())
 
         ttk.Button(win, text="Save", command=save_note).pack(pady=5)
 
-    
     def edit_note_popup(self):
         sel = self.listbox.curselection()
         if not sel:
@@ -232,12 +242,10 @@ class UserDashboardFrame(ttk.Frame):
             self.refresh()
             win.destroy()
 
-            # Bind ENTER (Title)
-            title_entry.bind("<Return>", lambda event: save_edit())
-            # Bind CTRL+ENTER (Content)
-            content_text.bind("<Control-Return>", lambda event: save_edit())
+        title_entry.bind("<Return>", lambda event: save_edit())
+        content_text.bind("<Control-Return>", lambda event: save_edit())
 
-            ttk.Button(win, text="Save Changes", command=save_edit).pack(pady=5)
+        ttk.Button(win, text="Save Changes", command=save_edit).pack(pady=5)
 
 
     def delete_note(self):
@@ -254,10 +262,6 @@ class UserDashboardFrame(ttk.Frame):
     def logout(self):
         self.controller.active_user = None
         self.controller.show_frame(LoginFrame)
-
-
-
-# Admin Dashboard Frame
 
 class AdminDashboardFrame(ttk.Frame):
     def __init__(self, parent, controller):
@@ -303,8 +307,6 @@ class AdminDashboardFrame(ttk.Frame):
         self.controller.active_user = None
         self.controller.show_frame(LoginFrame)
 
-
-# Run the app
 if __name__ == "__main__":
     app = App()
     app.mainloop()
