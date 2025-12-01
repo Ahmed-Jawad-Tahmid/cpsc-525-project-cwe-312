@@ -160,7 +160,8 @@ class UserDashboardFrame(ttk.Frame):
     def add_note_popup(self):
         win = tk.Toplevel(self)
         win.title("Add Note")
-        win.geometry("400x300")
+        win.geometry("500x400")
+        win.resizable(True, True)
 
         ttk.Label(win, text="Title").pack()
         title_entry = ttk.Entry(win, width=40)
