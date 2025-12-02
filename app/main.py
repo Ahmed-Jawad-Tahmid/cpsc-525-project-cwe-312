@@ -31,7 +31,6 @@ class PlaceholderEntry(ttk.Entry):
         if self["foreground"] == self.placeholder_color:
             self.delete(0, tk.END)
             self["foreground"] = self.normal_color
-            # Restore password masking
             if self.real_show is not None:
                 self.config(show=self.real_show)
 
@@ -81,16 +80,17 @@ class LoginFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-
         center = ttk.Frame(self)
         center.pack(expand=True)
 
         ttk.Label(center, text="Login", font=("Arial", 18)).pack(pady=15)
 
-        self.username_entry = PlaceholderEntry(center, width=30, placeholder="Username")
+        ttk.Label(center, text="Username").pack()
+        self.username_entry = ttk.Entry(center, width=30)
         self.username_entry.pack(pady=5)
 
-        self.password_entry = PlaceholderEntry(center, width=30, placeholder="Password", show="*")
+        ttk.Label(center, text="Password").pack()
+        self.password_entry = ttk.Entry(center, width=30, show="*")
         self.password_entry.pack(pady=5)
         self.password_entry.bind("<Return>", lambda event: self.login())
 
@@ -113,21 +113,26 @@ class RegisterFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
+        center = ttk.Frame(self)
+        center.pack(expand=True)
 
-        ttk.Label(self, text="Register", font=("Arial", 18)).pack(pady=15)
+        ttk.Label(center, text="Register", font=("Arial", 18)).pack(pady=15)
 
-        self.username_entry = PlaceholderEntry(self, width=30, placeholder="Choose Username")
+        ttk.Label(center, text="Username").pack()
+        self.username_entry = ttk.Entry(center, width=30)
         self.username_entry.pack(pady=5)
 
-        self.password_entry = PlaceholderEntry(self, width=30, placeholder="Choose Password", show="*")
+        ttk.Label(center, text="Password").pack()
+        self.password_entry = ttk.Entry(center, width=30, show="*")
         self.password_entry.pack(pady=5)
 
-        self.confirm_entry = PlaceholderEntry(self, width=30, placeholder="Retype Password", show="*")
+        ttk.Label(center, text="Confirm Password").pack()
+        self.confirm_entry = ttk.Entry(center, width=30, show="*")
         self.confirm_entry.pack(pady=5)
         self.confirm_entry.bind("<Return>", lambda event: self.register())
 
-        ttk.Button(self, text="Register", command=self.register).pack(pady=10)
-        ttk.Button(self, text="Back to Login",
+        ttk.Button(center, text="Register", command=self.register).pack(pady=10)
+        ttk.Button(center, text="Back to Login",
                    command=lambda: controller.show_frame(LoginFrame)).pack()
 
     def register(self):
