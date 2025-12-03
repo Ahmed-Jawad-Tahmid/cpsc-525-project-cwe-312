@@ -37,20 +37,6 @@ This application violates CWE-312 – Cleartext Storage of Sensitive Information
 -   An attacker can simply read these files and decode them using Python’s pickle module
     
 -   No other encryption, no access control, and no data protection is implemented
-    
-
-###  The Exploit
-
-Provided exploit scripts:
-
--   `dump_credentials.py` → extracts all usernames + hashed passwords
-    
--   `dump_notes.py` → extracts all user notes
-    
--   `auto_login.py` → logs attacker in by reading stored credentials
-    
-
-The exploit works because both `.pkl` files are readable and unencrypted.
 
 ----------
 
