@@ -1,3 +1,4 @@
+# note_manager.py
 from storage_manager import load_notes, save_notes
 
 def get_user_notes(username):
@@ -53,15 +54,9 @@ def delete_note(username, index):
 
     return True, "Note deleted."
 
-# Get all notes across all users (for Admin only)
-
 def get_all_notes():
     """
     Returns the entire notes dictionary.
     Admin only.
     """
-    notes = load_notes()
-    return notes
-
-
-
+    return load_notes()

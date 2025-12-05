@@ -1,3 +1,4 @@
+
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 
@@ -91,8 +92,8 @@ class App(tk.Tk):
             pass
 
         # General frame back
-        self.style.configure("TFrame", background=self.bg)
-        self.style.configure("Card.TFrame", background=self.panel, relief="flat", borderwidth=2)
+        self.style.configure("TFrame", background=self.panel)
+        self.style.configure("Card.TFrame", background=self.panel)
 
         # Labels
         self.style.configure("TLabel", background=self.panel, foreground=self.fg, font=("Segoe UI", 11))
@@ -102,26 +103,12 @@ class App(tk.Tk):
         # Entries / inputs
         self.style.configure("TEntry", fieldbackground=self.input_bg, background=self.input_bg, foreground=self.fg)
 
-        # Regular buttons with gray background
-        self.style.configure("TButton", 
-                           padding=8, 
-                           relief="flat", 
-                           background="#e2e8f0", 
-                           foreground=self.fg,
-                           borderwidth=1)
-        self.style.map("TButton",
-                       background=[("active", "#cbd5e1"), ("pressed", "#94a3b8")],
-                       relief=[("pressed", "sunken")])
-        
-        # Primary action buttons with blue accent color
-        self.style.configure("Accent.TButton", 
-                           foreground="white", 
-                           background=self.acc,
-                           borderwidth=0)
+        # Btns
+        self.style.configure("TButton", padding=6, relief="flat", background=self.panel, foreground=self.fg)
+        self.style.configure("Accent.TButton", foreground="white", background=self.acc)
         self.style.map("Accent.TButton",
-                       background=[("active", "#1565c0"), ("pressed", "#0d47a1")],
-                       foreground=[("!disabled", "white")],
-                       relief=[("pressed", "sunken")])
+                       background=[("active", "#125ea6")],
+                       foreground=[("!disabled", "white")])
 
         self.style.configure("Treeview", background=self.panel, fieldbackground=self.panel, foreground=self.fg)
         self.style.configure("Treeview.Heading", background=self.panel, foreground=self.fg)
@@ -134,7 +121,8 @@ class App(tk.Tk):
         self.option_add("*Entry.background", self.input_bg)
         self.option_add("*Entry.foreground", self.fg)
 
-        self.container = ttk.Frame(self)
+        # container for frames
+        self.container = ttk.Frame(self, style="Card.TFrame")
         self.container.pack(fill="both", expand=True)
         self.container.configure(style="TFrame")
 
@@ -163,6 +151,7 @@ class App(tk.Tk):
             self.frames[UserDashboardFrame].refresh()
             self.show_frame(UserDashboardFrame)
 
+# Login frame
 # Login frame
 class LoginFrame(ttk.Frame):
     def __init__(self, parent, controller):
@@ -265,6 +254,14 @@ class UserDashboardFrame(ttk.Frame):
         self.listbox.bind("<Double-Button-1>", lambda e: self.open_note_popup())
         self.listbox.bind("<Return>", lambda e: self.open_note_popup())
 
+        # open note on double-click and on Return
+        self.listbox.bind("<Double-Button-1>", lambda e: self.open_note_popup())
+        self.listbox.bind("<Return>", lambda e: self.open_note_popup())
+
+        # open note on double-click and on Return
+        self.listbox.bind("<Double-Button-1>", lambda e: self.open_note_popup())
+        self.listbox.bind("<Return>", lambda e: self.open_note_popup())
+
         btn_frame = ttk.Frame(card)
         btn_frame.pack(pady=(10, 0))
 
@@ -287,19 +284,17 @@ class UserDashboardFrame(ttk.Frame):
         # make window background match app
         win.configure(bg=self.controller.bg)
 
-        center_container = ttk.Frame(win)
-        center_container.pack(fill="both", expand=True)
-
-        frame = ttk.Frame(center_container, style="Card.TFrame", padding=25)
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        # use a card frame inside the toplevel so ttk styles apply consistently
+        frame = ttk.Frame(win, style="Card.TFrame", padding=12)
+        frame.pack(fill="both", expand=True, padx=12, pady=12)
 
         ttk.Label(frame, text="Title").pack(anchor="w")
-        title_entry = ttk.Entry(frame, width=50)
+        title_entry = ttk.Entry(frame, width=40)
         title_entry.pack(pady=5, fill="x")
 
-        ttk.Label(frame, text="Content").pack(anchor="w", pady=(10, 0))
-        content_text = tk.Text(frame, width=50, height=15)
-        content_text.pack(fill="both", expand=True, pady=(5, 10))
+        ttk.Label(frame, text="Content").pack(anchor="w")
+        content_text = tk.Text(frame, width=45, height=15)
+        content_text.pack(fill="both", expand=True)
 
         def save_note():
             title = title_entry.get().strip()
@@ -316,8 +311,7 @@ class UserDashboardFrame(ttk.Frame):
         title_entry.bind("<Return>", lambda event: save_note())
         content_text.bind("<Control-Return>", lambda event: save_note())
 
-
-        ttk.Button(frame, text="Save", style="Accent.TButton", width=20, command=save_note).pack(pady=5)
+        ttk.Button(frame, text="Save", command=save_note).pack(pady=8)
 
         # focus title for convenience
         title_entry.focus_set()
@@ -336,23 +330,16 @@ class UserDashboardFrame(ttk.Frame):
         win.title("Edit Note")
         win.geometry("550x450")
         win.resizable(True, True)
-        win.configure(bg=self.controller.bg)
-
-        center_container = ttk.Frame(win)
-        center_container.pack(fill="both", expand=True)
-
-        frame = ttk.Frame(center_container, style="Card.TFrame", padding=25)
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
 
         ttk.Label(frame, text="Title").pack(anchor="w")
-        title_entry = ttk.Entry(frame, width=50)
+        title_entry = ttk.Entry(frame, width=40)
         title_entry.insert(0, note["title"])
         title_entry.pack(pady=5, fill="x")
 
-        ttk.Label(frame, text="Content").pack(anchor="w", pady=(10, 0))
-        content_text = tk.Text(frame, width=50, height=15)
+        ttk.Label(frame, text="Content").pack(anchor="w")
+        content_text = tk.Text(frame, width=45, height=15)
         content_text.insert("1.0", note["content"])
-        content_text.pack(fill="both", expand=True, pady=(5, 10))
+        content_text.pack()
 
         def save_edit():
             new_title = title_entry.get().strip()
@@ -369,7 +356,7 @@ class UserDashboardFrame(ttk.Frame):
         title_entry.bind("<Return>", lambda event: save_edit())
         content_text.bind("<Control-Return>", lambda event: save_edit())
 
-        ttk.Button(frame, text="Save Changes", style="Accent.TButton", width=20, command=save_edit).pack(pady=5)
+        ttk.Button(frame, text="Save Changes", command=save_edit).pack(pady=8)
 
         title_entry.focus_set()
 
@@ -384,22 +371,19 @@ class UserDashboardFrame(ttk.Frame):
 
         win = tk.Toplevel(self)
         win.title(note["title"] or "Note")
-        win.geometry("550x450")
+        win.geometry("500x400")
         win.resizable(True, True)
         win.configure(bg=self.controller.bg)
 
-        center_container = ttk.Frame(win)
-        center_container.pack(fill="both", expand=True)
+        frame = ttk.Frame(win, style="Card.TFrame", padding=12)
+        frame.pack(fill="both", expand=True, padx=12, pady=12)
 
-        frame = ttk.Frame(center_container, style="Card.TFrame", padding=25)
-        frame.pack(fill="both", expand=True, padx=20, pady=20)
+        ttk.Label(frame, text=note["title"], font=("Arial", 14, "bold")).pack(anchor="w")
 
-        ttk.Label(frame, text=note["title"], font=("Arial", 16, "bold")).pack(anchor="w", pady=(0, 10))
-
-        content_text = tk.Text(frame, width=50, height=15)
+        content_text = tk.Text(frame, width=45, height=15)
         content_text.insert("1.0", note["content"])
         content_text.configure(state="disabled")
-        content_text.pack(fill="both", expand=True, pady=(0, 10))
+        content_text.pack(fill="both", expand=True, pady=(6, 6))
 
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(fill="x")
