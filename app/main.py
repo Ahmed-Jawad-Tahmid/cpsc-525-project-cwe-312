@@ -71,7 +71,7 @@ class App(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("Notes")
-        self.geometry("600x400")
+        self.geometry("700x500")
         self.resizable(False, False)
 
         # theme palette 
@@ -124,6 +124,7 @@ class App(tk.Tk):
         # container for frames
         self.container = ttk.Frame(self, style="Card.TFrame")
         self.container.pack(fill="both", expand=True)
+        self.container.configure(style="TFrame")
 
         self.frames = {}
         
@@ -151,25 +152,29 @@ class App(tk.Tk):
             self.show_frame(UserDashboardFrame)
 
 # Login frame
+# Login frame
 class LoginFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
 
-        center = ttk.Frame(self)
-        center.pack(expand=True)
+        center_container = ttk.Frame(self)
+        center_container.pack(expand=True)
 
-        ttk.Label(center, text="Login", font=("Arial", 18)).pack(pady=15)
+        card = ttk.Frame(center_container, style="Card.TFrame", padding=40)
+        card.pack(padx=30, pady=30)
 
-        self.username_entry = PlaceholderEntry(center, width=30, placeholder="Username")
-        self.username_entry.pack(pady=5)
+        ttk.Label(card, text="Login", font=("Arial", 20, "bold")).pack(pady=(0, 25))
 
-        self.password_entry = PlaceholderEntry(center, width=30, placeholder="Password", show="*")
-        self.password_entry.pack(pady=5)
+        self.username_entry = PlaceholderEntry(card, width=35, placeholder="Username")
+        self.username_entry.pack(pady=8)
+
+        self.password_entry = PlaceholderEntry(card, width=35, placeholder="Password", show="*")
+        self.password_entry.pack(pady=8)
         self.password_entry.bind("<Return>", lambda event: self.login())
 
-        ttk.Button(center, text="Login", width=20, command=self.login).pack(pady=5)
-        ttk.Button(center, text="Create new account", width=20,
+        ttk.Button(card, text="Login", width=25, style="Accent.TButton", command=self.login).pack(pady=(15, 8))
+        ttk.Button(card, text="Create new account", width=25,
                    command=lambda: controller.show_frame(RegisterFrame)).pack(pady=5)
 
     def login(self):
@@ -189,21 +194,27 @@ class RegisterFrame(ttk.Frame):
         super().__init__(parent)
         self.controller = controller
 
-        ttk.Label(self, text="Register", font=("Arial", 18)).pack(pady=15)
+        center_container = ttk.Frame(self)
+        center_container.pack(expand=True)
 
-        self.username_entry = PlaceholderEntry(self, width=30, placeholder="Choose Username")
-        self.username_entry.pack(pady=5)
+        card = ttk.Frame(center_container, style="Card.TFrame", padding=40)
+        card.pack(padx=30, pady=30)
 
-        self.password_entry = PlaceholderEntry(self, width=30, placeholder="Choose Password", show="*")
-        self.password_entry.pack(pady=5)
+        ttk.Label(card, text="Register", font=("Arial", 20, "bold")).pack(pady=(0, 25))
 
-        self.confirm_entry = PlaceholderEntry(self, width=30, placeholder="Retype Password", show="*")
-        self.confirm_entry.pack(pady=5)
+        self.username_entry = PlaceholderEntry(card, width=35, placeholder="Choose Username")
+        self.username_entry.pack(pady=8)
+
+        self.password_entry = PlaceholderEntry(card, width=35, placeholder="Choose Password", show="*")
+        self.password_entry.pack(pady=8)
+
+        self.confirm_entry = PlaceholderEntry(card, width=35, placeholder="Retype Password", show="*")
+        self.confirm_entry.pack(pady=8)
         self.confirm_entry.bind("<Return>", lambda event: self.register())
 
-        ttk.Button(self, text="Register", command=self.register).pack(pady=10)
-        ttk.Button(self, text="Back to Login",
-                   command=lambda: controller.show_frame(LoginFrame)).pack()
+        ttk.Button(card, text="Register", width=25, style="Accent.TButton", command=self.register).pack(pady=(15, 8))
+        ttk.Button(card, text="Back to Login", width=25,
+                   command=lambda: controller.show_frame(LoginFrame)).pack(pady=5)
 
     def register(self):
         username = self.username_entry.get().strip()
@@ -228,25 +239,36 @@ class UserDashboardFrame(ttk.Frame):
         super().__init__(parent)
         self.controller = controller
 
-        center = ttk.Frame(self)
-        center.pack(expand=True)
+        center_container = ttk.Frame(self)
+        center_container.pack(expand=True)
 
-        ttk.Label(center, text="Your Notes", font=("Arial", 18)).pack(pady=10)
+        card = ttk.Frame(center_container, style="Card.TFrame", padding=30)
+        card.pack(padx=30, pady=30)
 
-        self.listbox = tk.Listbox(center, height=10, width=50)
+        ttk.Label(card, text="Your Notes", font=("Arial", 20, "bold")).pack(pady=(0, 15))
+
+        self.listbox = tk.Listbox(card, height=12, width=60)
         self.listbox.pack(pady=10)
 
         # open note on double-click and on Return
         self.listbox.bind("<Double-Button-1>", lambda e: self.open_note_popup())
         self.listbox.bind("<Return>", lambda e: self.open_note_popup())
 
-        btn_frame = ttk.Frame(center)
-        btn_frame.pack()
+        # open note on double-click and on Return
+        self.listbox.bind("<Double-Button-1>", lambda e: self.open_note_popup())
+        self.listbox.bind("<Return>", lambda e: self.open_note_popup())
 
-        ttk.Button(btn_frame, text="Add Note", command=self.add_note_popup).grid(row=0, column=0, padx=5)
-        ttk.Button(btn_frame, text="Edit Note", command=self.edit_note_popup).grid(row=0, column=1, padx=5)
-        ttk.Button(btn_frame, text="Delete Note", command=self.delete_note).grid(row=0, column=2, padx=5)
-        ttk.Button(btn_frame, text="Logout", command=self.logout).grid(row=0, column=3, padx=5)
+        # open note on double-click and on Return
+        self.listbox.bind("<Double-Button-1>", lambda e: self.open_note_popup())
+        self.listbox.bind("<Return>", lambda e: self.open_note_popup())
+
+        btn_frame = ttk.Frame(card)
+        btn_frame.pack(pady=(10, 0))
+
+        ttk.Button(btn_frame, text="Add Note", style="Accent.TButton", command=self.add_note_popup).grid(row=0, column=0, padx=5, pady=5)
+        ttk.Button(btn_frame, text="Edit Note", command=self.edit_note_popup).grid(row=0, column=1, padx=5, pady=5)
+        ttk.Button(btn_frame, text="Delete Note", command=self.delete_note).grid(row=0, column=2, padx=5, pady=5)
+        ttk.Button(btn_frame, text="Logout", command=self.logout).grid(row=0, column=3, padx=5, pady=5)
 
     def refresh(self):
         self.listbox.delete(0, tk.END)
@@ -257,7 +279,7 @@ class UserDashboardFrame(ttk.Frame):
     def add_note_popup(self):
         win = tk.Toplevel(self)
         win.title("Add Note")
-        win.geometry("500x400")
+        win.geometry("550x450")
         win.resizable(True, True)
         # make window background match app
         win.configure(bg=self.controller.bg)
@@ -306,12 +328,8 @@ class UserDashboardFrame(ttk.Frame):
 
         win = tk.Toplevel(self)
         win.title("Edit Note")
-        win.geometry("500x400")
+        win.geometry("550x450")
         win.resizable(True, True)
-        win.configure(bg=self.controller.bg)
-
-        frame = ttk.Frame(win, style="Card.TFrame", padding=12)
-        frame.pack(fill="both", expand=True, padx=12, pady=12)
 
         ttk.Label(frame, text="Title").pack(anchor="w")
         title_entry = ttk.Entry(frame, width=40)
@@ -321,7 +339,7 @@ class UserDashboardFrame(ttk.Frame):
         ttk.Label(frame, text="Content").pack(anchor="w")
         content_text = tk.Text(frame, width=45, height=15)
         content_text.insert("1.0", note["content"])
-        content_text.pack(fill="both", expand=True)
+        content_text.pack()
 
         def save_edit():
             new_title = title_entry.get().strip()
@@ -393,15 +411,21 @@ class AdminDashboardFrame(ttk.Frame):
         super().__init__(parent)
         self.controller = controller
 
-        ttk.Label(self, text="Admin Dashboard", font=("Arial", 18)).pack(pady=10)
+        center_container = ttk.Frame(self)
+        center_container.pack(expand=True)
 
-        self.tree = ttk.Treeview(self, columns=("hash"), show="headings")
+        card = ttk.Frame(center_container, style="Card.TFrame", padding=30)
+        card.pack(padx=30, pady=30)
+
+        ttk.Label(card, text="Admin Dashboard", font=("Arial", 20, "bold")).pack(pady=(0, 15))
+
+        self.tree = ttk.Treeview(card, columns=("hash"), show="headings", height=10)
         self.tree.heading("hash", text="Password Hash")
-        self.tree.column("hash", width=400)
+        self.tree.column("hash", width=450)
         self.tree.pack(pady=10)
 
-        btn_frame = ttk.Frame(self)
-        btn_frame.pack()
+        btn_frame = ttk.Frame(card)
+        btn_frame.pack(pady=(10, 0))
 
         ttk.Button(btn_frame, text="Reset User Password", command=self.reset_pw).grid(row=0, column=0, padx=5)
         ttk.Button(btn_frame, text="Logout", command=self.logout).grid(row=0, column=1, padx=5)
