@@ -5,8 +5,10 @@ from auth_manager import login_user, register_user
 from note_manager import get_user_notes, add_note, edit_note, delete_note
 from admin_manager import view_all_users, reset_user_password
 
-
+# Defines a custom Entry widget that shows placeholder text when empty
 class PlaceholderEntry(ttk.Entry):
+    
+    # Initializes the entry with placeholder text, optional color, and optional masking
     def __init__(self, master=None, placeholder="Placeholder", color="gray", show=None, **kwargs):
         self.placeholder = placeholder
         self.placeholder_color = color
@@ -25,12 +27,14 @@ class PlaceholderEntry(ttk.Entry):
 
         self._show_placeholder()
 
+    # Renders the placeholder text into the entry field
     def _show_placeholder(self):
         self.delete(0, tk.END)
         self.insert(0, self.placeholder)
         self.configure(foreground=self.placeholder_color, show=None)
         self.has_placeholder = True
 
+    # Removes placeholder text and restores normal entry styling
     def _clear_placeholder(self):
         if self.has_placeholder:
             self.delete(0, tk.END)
@@ -39,13 +43,16 @@ class PlaceholderEntry(ttk.Entry):
                 self.configure(show=self.real_show)
             self.has_placeholder = False
 
+    # Focus-in handler: remove placeholder so the user can type immediately
     def _on_focus_in(self, event):
         self._clear_placeholder()
 
+    # Focus-out handler: if user left it empty then restore placeholder
     def _on_focus_out(self, event):
         if not self.get():
             self._show_placeholder()
 
+    # Keypress handler: clears placeholder on first meaningful keypress
     def _on_key(self, event):
         if self.has_placeholder:
             if event.keysym not in (
@@ -54,13 +61,16 @@ class PlaceholderEntry(ttk.Entry):
             ):
                 self._clear_placeholder()
 
+    # Overrides Entry.get() so placeholder text is never returned as real input
     def get(self, *args, **kwargs):
         if getattr(self, "has_placeholder", False):
             return ""
         return super().get(*args, **kwargs)
 
-
+# Defines the main Notes application window and frame-switching controller logic
 class App(tk.Tk):
+    
+    # Initializes the root window, styles, and all UI frames
     def __init__(self):
         super().__init__()
         self.title("Notes")
@@ -92,7 +102,7 @@ class App(tk.Tk):
         self.style.configure("Header.TLabel", background=self.panel, foreground=self.fg,
                              font=("Segoe UI", 18, "bold"))
 
-        # Some Tk builds can throw on certain entry options; keep it simple but stable
+        # Some Tk builds can throw on certain entry options 
         try:
             self.style.configure("TEntry", fieldbackground=self.input_bg, background=self.input_bg, foreground=self.fg)
         except tk.TclError:
@@ -124,9 +134,11 @@ class App(tk.Tk):
 
         self.show_frame(LoginFrame)
 
+    # Raises the requested frame to the top so it becomes visible
     def show_frame(self, page):
         self.frames[page].tkraise()
 
+    # Handles post-login routing to user or admin dashboards based on role
     def login_success(self, username, role):
         self.active_user = username
         self.active_role = role
@@ -138,7 +150,7 @@ class App(tk.Tk):
             self.frames[UserDashboardFrame].refresh()
             self.show_frame(UserDashboardFrame)
 
-
+# Implements the login UI page
 class LoginFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -163,6 +175,7 @@ class LoginFrame(ttk.Frame):
         ttk.Button(card, text="Create new account", width=25,
                    command=lambda: controller.show_frame(RegisterFrame)).pack(pady=5)
 
+    # Attempts to authenticate the user and route to the appropriate dashboard
     def login(self):
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
@@ -173,7 +186,7 @@ class LoginFrame(ttk.Frame):
         else:
             messagebox.showerror("Error", "Invalid username or password.")
 
-
+# Implements the registration UI page
 class RegisterFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -201,6 +214,7 @@ class RegisterFrame(ttk.Frame):
         ttk.Button(card, text="Back to Login", width=25,
                    command=lambda: controller.show_frame(LoginFrame)).pack(pady=5)
 
+    # Validates inputs and calls backend registration logic
     def register(self):
         username = self.username_entry.get().strip()
         password = self.password_entry.get().strip()
@@ -221,7 +235,7 @@ class RegisterFrame(ttk.Frame):
         else:
             messagebox.showerror("Error", msg)
 
-
+# Implements the standard user dashboard (view/add/edit/delete notes)
 class UserDashboardFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -254,12 +268,14 @@ class UserDashboardFrame(ttk.Frame):
         ttk.Button(btn_frame, text="Logout",
                    command=self.logout).grid(row=0, column=3, padx=5, pady=5)
 
+    # Refreshes the note title list from storage
     def refresh(self):
         self.listbox.delete(0, tk.END)
         notes = get_user_notes(self.controller.active_user)
         for note in notes:
             self.listbox.insert(tk.END, note.get("title", ""))
 
+    # Opens a popup window to create a new note
     def add_note_popup(self):
         win = tk.Toplevel(self)
         win.title("Add Note")
@@ -278,6 +294,7 @@ class UserDashboardFrame(ttk.Frame):
         content_text = tk.Text(frame, width=45, height=15)
         content_text.pack(fill="both", expand=True)
 
+        # Saves the new note to storage and refreshes the list
         def save_note():
             title = title_entry.get().strip()
             content = content_text.get("1.0", tk.END).strip()
@@ -294,6 +311,7 @@ class UserDashboardFrame(ttk.Frame):
         ttk.Button(frame, text="Save", command=save_note).pack(pady=8)
         title_entry.focus_set()
 
+    # Opens a popup window to edit the selected note
     def edit_note_popup(self):
         sel = self.listbox.curselection()
         if not sel:
@@ -324,6 +342,7 @@ class UserDashboardFrame(ttk.Frame):
         content_text.insert("1.0", note.get("content", ""))
         content_text.pack(fill="both", expand=True)
 
+        # Saves the edited note back to storage
         def save_edit():
             new_title = title_entry.get().strip()
             new_content = content_text.get("1.0", tk.END).strip()
@@ -340,6 +359,7 @@ class UserDashboardFrame(ttk.Frame):
         ttk.Button(frame, text="Save Changes", command=save_edit).pack(pady=8)
         title_entry.focus_set()
 
+    # Opens a read-only popup to view the selected note
     def open_note_popup(self):
         sel = self.listbox.curselection()
         if not sel:
@@ -371,6 +391,7 @@ class UserDashboardFrame(ttk.Frame):
                    command=lambda: (win.destroy(), self.edit_note_popup())).pack(side="left", padx=4)
         ttk.Button(btn_frame, text="Close", command=win.destroy).pack(side="right", padx=4)
 
+    # Deletes the currently selected note after confirmation
     def delete_note(self):
         sel = self.listbox.curselection()
         if not sel:
@@ -382,12 +403,13 @@ class UserDashboardFrame(ttk.Frame):
             delete_note(self.controller.active_user, sel[0])
             self.refresh()
 
+    # Logs out the current user and returns to the login screen
     def logout(self):
         self.controller.active_user = None
         self.controller.active_role = None
         self.controller.show_frame(LoginFrame)
 
-
+# Implements the admin dashboard UI page
 class AdminDashboardFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
@@ -414,6 +436,7 @@ class AdminDashboardFrame(ttk.Frame):
         ttk.Button(btn_frame, text="Reset User Password", command=self.reset_pw).grid(row=0, column=0, padx=5)
         ttk.Button(btn_frame, text="Logout", command=self.logout).grid(row=0, column=1, padx=5)
 
+    # Reloads user list from storage and repopulates the Treeview
     def refresh(self):
         self.tree.delete(*self.tree.get_children())
         users = view_all_users()
@@ -422,6 +445,7 @@ class AdminDashboardFrame(ttk.Frame):
             pw_hash = u.get("password", "")  # FIX: schema uses "password"
             self.tree.insert("", tk.END, values=(username, pw_hash))
 
+    # Prompts for username + new password, then applies reset via admin_manager
     def reset_pw(self):
         username = simpledialog.askstring("Reset Password", "Enter username:")
         if not username:
@@ -438,6 +462,7 @@ class AdminDashboardFrame(ttk.Frame):
         else:
             messagebox.showerror("Error", msg)
 
+    # Logs out the admin and returns to the login screen
     def logout(self):
         self.controller.active_user = None
         self.controller.active_role = None
