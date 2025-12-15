@@ -2,49 +2,71 @@ import hashlib
 from storage_manager import load_users, save_users
 
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD = "admin123"    
+ADMIN_PASSWORD = "admin123"
 
-# Hashing 
 
 def weak_hash(password: str) -> str:
     """
     Hash the password using SHA-256 WITHOUT salt.
+    This is intentionally weak for the assignment.
     """
     return hashlib.sha256(password.encode()).hexdigest()
 
-# Helper functions
 
-def user_exists(username):
+def load_user_list():
+    """Helper to always get a list of user dicts."""
     users = load_users()
-    return any(u["username"] == username for u in users)
+    # If storage_manager returns None or something weird, normalize
+    if users is None:
+        return []
+    return users
 
-def get_user(username):
-    users = load_users()
+
+def get_user(username: str):
+    """Return the user dict for a given username, or None."""
+    users = load_user_list()
     for u in users:
-        if u["username"] == username:
+        if u.get("username") == username:
             return u
     return None
 
-# Registration
 
-def register_user(username, password):
-    if username == ADMIN_USERNAME:
-        return False, "Username reserved for admin."
+def user_exists(username: str) -> bool:
+    return get_user(username) is not None
+
+
+def register_user(username: str, password: str):
+    """
+    Create a new user.
+    Stores BOTH:
+      - 'password'      -> SHA-256 hash (used for login)
+      - 'plain_password' -> plaintext (CWE-312 violation on purpose)
+    """
+    if not username or not password:
+        return False, "Username and password cannot be empty."
 
     if user_exists(username):
-        return False, "User already exists."
+        return False, "Username already exists."
 
-    hashed = weak_hash(password)    # store weak hash
-    users = load_users()
-    users.append({"username": username, "password": hashed})
+    users = load_user_list()
+
+    user = {
+        "username": username,
+        "password": weak_hash(password),   # hash for login
+        "plain_password": password,        # plaintext for admin panel
+        "role": "user"
+    }
+
+    users.append(user)
     save_users(users)
+    return True, "User registered successfully."
 
-    return True, "Registration successful."
 
-# Login
-
-def login_user(username, password):
-    # Admin: compare plaintext 
+def login_user(username: str, password: str):
+    """
+    Login logic for both admin and normal users.
+    """
+    # Hard-coded admin credentials (also bad, but part of the assignment)
     if username == ADMIN_USERNAME and password == ADMIN_PASSWORD:
         return True, "admin"
 
@@ -54,7 +76,7 @@ def login_user(username, password):
 
     hashed_input = weak_hash(password)
 
-    if user["password"] == hashed_input:
+    if user.get("password") == hashed_input:
         return True, "user"
 
     return False, None
