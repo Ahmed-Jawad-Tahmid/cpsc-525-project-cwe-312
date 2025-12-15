@@ -1,6 +1,8 @@
+# Imports persistence helpers to load and save the users list from storage.
 from storage_manager import load_users, save_users
-from auth_manager import weak_hash, ADMIN_USERNAME
 
+# Imports the weak hashing function and the reserved admin username constant.
+from auth_manager import weak_hash, ADMIN_USERNAME
 
 def view_all_users():
     """
