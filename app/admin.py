@@ -1,11 +1,15 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 
+# Imports admin functions to list all users and reset a user's password.
 from admin_manager import view_all_users, reset_user_password
+
+# Imports a helper that returns the full notes dictionary for admin inspection.
 from note_manager import get_all_notes
 
-
+# Defines a tab/panel UI for managing users
 class UsersPanel(ttk.Frame):
+    # Initializes the user management panel and its widgets
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -32,6 +36,7 @@ class UsersPanel(ttk.Frame):
 
         self.refresh()
 
+    # Reloads users from storage and repopulates the Treeview
     def refresh(self):
         # Clear table
         for item in self.tree.get_children():
@@ -48,7 +53,8 @@ class UsersPanel(ttk.Frame):
             plain = u.get("plain_password", "<not stored>")
             pw_hash = u.get("password", "")
             self.tree.insert("", "end", values=(username, plain, pw_hash))
-
+            
+    # Returns the username of the currently selected Treeview row
     def get_selected_username(self):
         selected = self.tree.selection()
         if not selected:
@@ -58,6 +64,7 @@ class UsersPanel(ttk.Frame):
             return None
         return values[0]
 
+    # Prompts for a new password and resets it for the selected user
     def reset_selected(self):
         username = self.get_selected_username()
         if not username:
@@ -77,8 +84,9 @@ class UsersPanel(ttk.Frame):
         else:
             messagebox.showerror("Error", msg)
 
-
+# Defines a tab/panel UI for browsing all users' notes and viewing note content
 class NotesPanel(ttk.Frame):
+    # Initializes the notes browsing panel and its widgets
     def __init__(self, parent):
         super().__init__(parent)
 
@@ -123,6 +131,7 @@ class NotesPanel(ttk.Frame):
 
         self.refresh()
 
+    # Reloads the full notes dictionary and refreshes all UI lists
     def refresh(self):
         try:
             self.notes_dict = get_all_notes()
@@ -137,6 +146,7 @@ class NotesPanel(ttk.Frame):
         self.notes_list.delete(0, tk.END)
         self.content_text.delete("1.0", tk.END)
 
+    # Handles selecting a user and populating the notes list with that user's notes
     def on_user_select(self, event=None):
         selection = self.user_list.curselection()
         if not selection:
@@ -153,6 +163,7 @@ class NotesPanel(ttk.Frame):
             title = note.get("title", f"Note {i}")
             self.notes_list.insert(tk.END, title)
 
+    # Handles selecting a note title and showing its content in the text area
     def on_note_select(self, event=None):
         user_sel = self.user_list.curselection()
         note_sel = self.notes_list.curselection()
@@ -173,8 +184,10 @@ class NotesPanel(ttk.Frame):
         self.content_text.delete("1.0", tk.END)
         self.content_text.insert(tk.END, content)
 
-
+# Defines the top-level admin-only application window that hosts the Users and Notes panels
 class AdminApp(tk.Tk):
+    
+    # Initializes the admin window and its tabbed interface
     def __init__(self):
         super().__init__()
         self.title("Admin Panel - Notes App")
